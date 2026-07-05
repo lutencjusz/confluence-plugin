@@ -1,0 +1,13 @@
+{
+  "name": "confluence",
+  "version": "0.1.0",
+  "description": "Obsługa Confluence Cloud: odczyt/wyszukiwanie (CQL), tworzenie i edycja stron (storage), komentarze, załączniki i eksport do Obsidian.",
+  "author": {
+    "name": "lutencjusz",
+    "url": "https://github.com/lutencjusz"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/lutencjusz/confluence-plugin",
+  "repository": "https://github.com/lutencjusz/confluence-plugin",
+  "keywords": ["confluence", "atlassian", "wiki", "rest-api", "cql", "obsidian"]
+}
