@@ -72,6 +72,55 @@ Describe 'New-ConfluenceCurlConfig' {
     }
 }
 
+Describe 'New-ConfluenceCurlArgs' {
+    It 'nie przyjmuje parametrow z poswiadczeniami (Email/ApiToken pozostaja tylko w New-ConfluenceCurlConfig)' {
+        $params = (Get-Command New-ConfluenceCurlArgs).Parameters.Keys
+        $params | Should -Not -Contain 'Email'
+        $params | Should -Not -Contain 'ApiToken'
+    }
+
+    It 'buduje argumenty dla JSON body (plik tymczasowy przez -DataFile, bez --fail)' {
+        $a = New-ConfluenceCurlArgs -Method 'POST' -Url 'https://x.atlassian.net/wiki/rest/api/content' -DataFile 'C:\tmp\body.json'
+        $a | Should -Contain '--data'
+        $a | Should -Contain '@C:\tmp\body.json'
+        $a | Should -Contain 'Content-Type: application/json'
+        $a | Should -Not -Contain '--fail'
+        ($a -join ' ') | Should -Not -Match 'a@b\.c|SECRET'
+    }
+
+    It 'buduje argumenty dla multipart -FilePath (bez --fail)' {
+        $a = New-ConfluenceCurlArgs -Method 'POST' -Url 'https://x.atlassian.net/wiki/rest/api/content/123/child/attachment' -FilePath 'C:\dane\plik.txt' -AttachmentComment 'komentarz'
+        $a | Should -Contain '-F'
+        $a | Should -Contain 'file=@C:\dane\plik.txt'
+        $a | Should -Contain 'comment=komentarz'
+        $a | Should -Not -Contain '--fail'
+        ($a -join ' ') | Should -Not -Match 'a@b\.c|SECRET'
+    }
+
+    It 'buduje argumenty dla pobrania -OutFile (z --fail, HTTP >=400 => brak pliku)' {
+        $a = New-ConfluenceCurlArgs -Method 'GET' -Url 'https://x.atlassian.net/wiki/download/attachments/123/plik.txt' -OutFile 'C:\out\plik.txt'
+        $a | Should -Contain '--fail'
+        $a | Should -Contain '-L'
+        $a | Should -Contain '-o'
+        $a | Should -Contain 'C:\out\plik.txt'
+        ($a -join ' ') | Should -Not -Match 'a@b\.c|SECRET'
+    }
+}
+
+Describe 'Invoke-ConfluenceCurl — kontrola exit code' {
+    It 'rzuca czytelny blad gdy curl konczy sie kodem != 0 (transport failure / --fail na download)' {
+        Mock -ModuleName confluence curl.exe { $global:LASTEXITCODE = 22; return '' }
+        { Invoke-ConfluenceCurl -Method GET -Url 'https://x.atlassian.net/wiki/rest/api/content/1' -Email 'a@b.c' -ApiToken 'SECRET' } |
+            Should -Throw -ExpectedMessage '*kodem 22*'
+    }
+
+    It 'nie rzuca gdy curl konczy sie kodem 0' {
+        Mock -ModuleName confluence curl.exe { $global:LASTEXITCODE = 0; return '{"id":"1"}' }
+        { Invoke-ConfluenceCurl -Method GET -Url 'https://x.atlassian.net/wiki/rest/api/content/1' -Email 'a@b.c' -ApiToken 'SECRET' } |
+            Should -Not -Throw
+    }
+}
+
 Describe 'Invoke-ConfluenceApi' {
     BeforeAll {
         $script:cfg = [pscustomobject]@{

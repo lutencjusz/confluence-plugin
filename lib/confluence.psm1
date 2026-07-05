@@ -54,6 +54,39 @@ function New-ConfluenceCurlConfig {
     return ($lines -join [Environment]::NewLine)
 }
 
+function New-ConfluenceCurlArgs {
+    # Buduje argumenty curl BEZ poswiadczen (Email/ApiToken nie sa tu nawet
+    # przyjmowane) — sekret idzie wylacznie przez stdin (New-ConfluenceCurlConfig).
+    # -DataFile to sciezka do pliku tymczasowego z JSON-em (@plik), tworzonego
+    # przez wywolujacego (Invoke-ConfluenceCurl), zeby ta funkcja zostala czysta.
+    param(
+        [Parameter(Mandatory)][ValidateSet('GET','POST','PUT')][string]$Method,
+        [Parameter(Mandatory)][string]$Url,
+        [string]$DataFile,
+        [string]$FilePath,
+        [string]$AttachmentComment,
+        [string]$OutFile
+    )
+    $curlArgs = @('-s', '-X', $Method, '-K', '-')
+    if ($FilePath) {
+        # Upload multipart. Nazwa pola 'file' wg API zalacznikow v1.
+        $curlArgs += @('-F', "file=@$FilePath")
+        if ($AttachmentComment) { $curlArgs += @('-F', "comment=$AttachmentComment") }
+    } elseif ($DataFile) {
+        # JSON przez plik tymczasowy (@plik) — omija problemy z escapowaniem w argv.
+        $curlArgs += @('-H', 'Content-Type: application/json', '--data', "@$DataFile")
+    }
+    if ($OutFile) {
+        # --fail TYLKO na sciezce pobierania: HTTP >=400 ma zwrocic nonzero exit
+        # i NIE zapisywac tresci bledu do pliku docelowego. Na sciezce JSON --fail
+        # jest celowo pominiete, bo Invoke-ConfluenceApi czyta statusCode/message
+        # z ciala bledu Confluence (curl z --fail zwrocilby pusty output przy 4xx).
+        $curlArgs += @('-L', '--fail', '-o', $OutFile)
+    }
+    $curlArgs += $Url
+    return $curlArgs
+}
+
 function Invoke-ConfluenceCurl {
     # Jedyny punkt styku z siecia (mockowalny w testach).
     param(
@@ -68,25 +101,24 @@ function Invoke-ConfluenceCurl {
         [switch]$NoCheck
     )
     $tmp = $null
+    $exit = 0
     try {
-        $curlArgs = @('-s', '-X', $Method, '-K', '-')
-        if ($FilePath) {
-            # Upload multipart. Nazwa pola 'file' wg API zalacznikow v1.
-            $curlArgs += @('-F', "file=@$FilePath")
-            if ($AttachmentComment) { $curlArgs += @('-F', "comment=$AttachmentComment") }
-        } elseif ($JsonBody) {
-            # JSON przez plik tymczasowy (@plik) — omija problemy z escapowaniem w argv.
+        if (-not $FilePath -and $JsonBody) {
             $tmp = [System.IO.Path]::GetTempFileName()
             Set-Content -Path $tmp -Value $JsonBody -Encoding utf8 -NoNewline
-            $curlArgs += @('-H', 'Content-Type: application/json', '--data', "@$tmp")
         }
-        if ($OutFile) { $curlArgs += @('-L', '-o', $OutFile) }
-        $curlArgs += $Url
+        $curlArgs = New-ConfluenceCurlArgs -Method $Method -Url $Url -DataFile $tmp `
+            -FilePath $FilePath -AttachmentComment $AttachmentComment -OutFile $OutFile
         $config = New-ConfluenceCurlConfig -Email $Email -ApiToken $ApiToken -NoCheck:$NoCheck
-        return ($config | & curl.exe @curlArgs)
+        $result = $config | & curl.exe @curlArgs
+        $exit = $LASTEXITCODE
     } finally {
         if ($tmp -and (Test-Path $tmp)) { Remove-Item $tmp -Force -ErrorAction SilentlyContinue }
     }
+    if ($exit -ne 0) {
+        throw "Blad polaczenia z Confluence (curl zakonczyl sie kodem $exit): $Url"
+    }
+    return $result
 }
 
 function Invoke-ConfluenceApi {
