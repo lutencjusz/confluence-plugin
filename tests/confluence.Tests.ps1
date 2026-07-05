@@ -94,3 +94,30 @@ Describe 'Invoke-ConfluenceApi' {
             Should -Throw -ExpectedMessage '*Niepoprawna odpowiedz*'
     }
 }
+
+Describe 'Funkcje odczytu' {
+    BeforeAll {
+        $script:cfg = [pscustomobject]@{ baseUrl='https://x.atlassian.net/wiki'; email='a@b.c'; apiToken='S' }
+    }
+    It 'Get-ConfluencePage woła GET content/{id} z expand body.storage' {
+        Mock -ModuleName confluence Invoke-ConfluenceApi { '{"ok":1}' } -ParameterFilter {
+            $Method -eq 'GET' -and $Path -eq 'content/123' -and $Query.expand -like '*body.storage*'
+        }
+        Get-ConfluencePage -Id '123' -Config $script:cfg | Out-Null
+        Should -Invoke -ModuleName confluence Invoke-ConfluenceApi -Times 1
+    }
+    It 'Search-ConfluenceCql przekazuje cql i limit' {
+        Mock -ModuleName confluence Invoke-ConfluenceApi { '{"results":[]}' } -ParameterFilter {
+            $Path -eq 'content/search' -and $Query.cql -eq 'text ~ "foo"' -and $Query.limit -eq 10
+        }
+        Search-ConfluenceCql -Cql 'text ~ "foo"' -Limit 10 -Config $script:cfg | Out-Null
+        Should -Invoke -ModuleName confluence Invoke-ConfluenceApi -Times 1
+    }
+    It 'Find-ConfluencePage dodaje spaceKey gdy podany' {
+        Mock -ModuleName confluence Invoke-ConfluenceApi { '{"results":[]}' } -ParameterFilter {
+            $Path -eq 'content' -and $Query.title -eq 'Home' -and $Query.spaceKey -eq 'DS'
+        }
+        Find-ConfluencePage -Title 'Home' -SpaceKey 'DS' -Config $script:cfg | Out-Null
+        Should -Invoke -ModuleName confluence Invoke-ConfluenceApi -Times 1
+    }
+}

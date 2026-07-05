@@ -120,3 +120,35 @@ function Invoke-ConfluenceApi {
     }
     return $data
 }
+
+function Get-ConfluencePage {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][string]$Id, $Config)
+    return Invoke-ConfluenceApi -Method GET -Path "content/$Id" -Query @{ expand = 'body.storage,version,space' } -Config $Config
+}
+
+function Find-ConfluencePage {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][string]$Title, [string]$SpaceKey, $Config)
+    $q = @{ title = $Title; expand = 'version,space' }
+    if ($SpaceKey) { $q.spaceKey = $SpaceKey }
+    return Invoke-ConfluenceApi -Method GET -Path 'content' -Query $q -Config $Config
+}
+
+function Search-ConfluenceCql {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][string]$Cql, [int]$Limit = 25, $Config)
+    return Invoke-ConfluenceApi -Method GET -Path 'content/search' -Query @{ cql = $Cql; limit = $Limit } -Config $Config
+}
+
+function Get-ConfluenceSpaces {
+    [CmdletBinding()]
+    param([int]$Limit = 25, $Config)
+    return Invoke-ConfluenceApi -Method GET -Path 'space' -Query @{ limit = $Limit } -Config $Config
+}
+
+function Get-ConfluenceComments {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][string]$PageId, $Config)
+    return Invoke-ConfluenceApi -Method GET -Path "content/$PageId/child/comment" -Query @{ expand = 'body.storage,version' } -Config $Config
+}
