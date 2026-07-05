@@ -2,7 +2,7 @@
 
 [EN](README.md)
 
-Skille Claude Code do obsługi [Confluence Cloud](https://lutencjusz.atlassian.net/wiki) przez REST API v1: odczyt i wyszukiwanie (CQL), tworzenie i edycja stron (storage format), komentarze, załączniki oraz eksport strony do notatki Obsidian.
+Skille Claude Code do obsługi [Confluence Cloud](https://www.atlassian.com/software/confluence) przez REST API v1: odczyt i wyszukiwanie (CQL), tworzenie i edycja stron (storage format), komentarze, załączniki oraz eksport strony do notatki Obsidian.
 
 ## Skille
 - **confluence-setup** — konfiguracja połączenia i test (`~/.confluence/config.json`).
@@ -32,7 +32,7 @@ Uruchom skill **confluence-setup**, który utworzy `~/.confluence/config.json` (
 
 ```json
 {
-  "baseUrl": "https://lutencjusz.atlassian.net/wiki",
+  "baseUrl": "https://twoja-domena.atlassian.net/wiki",
   "email": "twoj-email@example.com",
   "apiToken": "xxxxxxxxxxxxxxxx"
 }

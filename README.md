@@ -2,7 +2,7 @@
 
 [PL](README_PL.md) — full version in Polish.
 
-Claude Code skills for [Confluence Cloud](https://lutencjusz.atlassian.net/wiki) via REST API v1: reading and searching (CQL), creating and editing pages (storage format), comments, attachments, and exporting a page to an Obsidian note.
+Claude Code skills for [Confluence Cloud](https://www.atlassian.com/software/confluence) via REST API v1: reading and searching (CQL), creating and editing pages (storage format), comments, attachments, and exporting a page to an Obsidian note.
 
 ## Skills
 - **confluence-setup** — connection configuration and test (`~/.confluence/config.json`).

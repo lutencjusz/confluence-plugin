@@ -13,7 +13,7 @@ Plik `~/.confluence/config.json` (poza repo; na Windows `%USERPROFILE%\.confluen
 
 | Pole | Znaczenie | Źródło |
 |------|-----------|--------|
-| `baseUrl` | bazowy URL wiki (bez końcowego `/`) | np. `https://lutencjusz.atlassian.net/wiki` |
+| `baseUrl` | bazowy URL wiki (bez końcowego `/`) | np. `https://twoja-domena.atlassian.net/wiki` |
 | `email` | e-mail konta Atlassian | konto |
 | `apiToken` | token API | https://id.atlassian.com/manage-profile/security/api-tokens |
 
@@ -26,7 +26,7 @@ Plik `~/.confluence/config.json` (poza repo; na Windows `%USERPROFILE%\.confluen
    $dir = Join-Path $HOME '.confluence'
    if (-not (Test-Path $dir)) { New-Item -ItemType Directory -Force $dir | Out-Null }
    @{
-     baseUrl='https://lutencjusz.atlassian.net/wiki'
+     baseUrl='https://twoja-domena.atlassian.net/wiki'
      email='WKLEJ_EMAIL'; apiToken='WKLEJ_TOKEN'
    } | ConvertTo-Json | Set-Content -Path (Join-Path $dir 'config.json') -Encoding utf8
    ```
