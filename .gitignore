@@ -1,0 +1,9 @@
+# Nigdy nie commituj sekretów ani lokalnej konfiguracji Confluence
+config.json
+.env
+*.key
+*.pem
+.confluence/
+
+# Pliki IDE (JetBrains)
+.idea/

@@ -1,0 +1,12 @@
+{
+  "name": "confluence-plugin",
+  "owner": { "name": "lutencjusz", "url": "https://github.com/lutencjusz" },
+  "plugins": [
+    {
+      "name": "confluence",
+      "source": "./",
+      "description": "Obsługa Confluence Cloud: odczyt/wyszukiwanie (CQL), tworzenie i edycja stron (storage), komentarze, załączniki i eksport do Obsidian.",
+      "version": "0.1.0"
+    }
+  ]
+}
