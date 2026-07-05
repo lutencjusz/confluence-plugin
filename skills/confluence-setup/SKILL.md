@@ -1,6 +1,6 @@
 ---
 name: confluence-setup
-description: Use when configuring the Confluence Cloud connection or testing it — creating ~/.confluence/config.json (baseUrl, email, API token) and verifying that the REST API works. Triggers: "skonfiguruj Confluence", "połącz z Confluence", "sprawdź połączenie z Confluence", "test confluence".
+description: 'Use when configuring the Confluence Cloud connection or testing it — creating ~/.confluence/config.json (baseUrl, email, API token) and verifying that the REST API works. Triggers: "skonfiguruj Confluence", "połącz z Confluence", "sprawdź połączenie z Confluence", "test confluence".'
 ---
 
 # confluence-setup

@@ -1,6 +1,6 @@
 ---
 name: confluence-files
-description: Use when uploading or downloading Confluence page attachments — attaching a local file to a page or downloading an attachment by filename. Triggers: "dodaj załącznik do strony Confluence", "wyślij plik na stronę", "pobierz załącznik z Confluence".
+description: 'Use when uploading or downloading Confluence page attachments — attaching a local file to a page or downloading an attachment by filename. Triggers: "dodaj załącznik do strony Confluence", "wyślij plik na stronę", "pobierz załącznik z Confluence".'
 ---
 
 # confluence-files

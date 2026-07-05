@@ -1,6 +1,6 @@
 ---
 name: confluence-export
-description: Use when exporting a Confluence Cloud page into an Obsidian Markdown note — fetching a page and saving it as a .md file with frontmatter. Triggers: "wyeksportuj stronę Confluence do Obsidian", "zapisz stronę jako notatkę .md", "ściągnij stronę Confluence do vaultu".
+description: 'Use when exporting a Confluence Cloud page into an Obsidian Markdown note — fetching a page and saving it as a .md file with frontmatter. Triggers: "wyeksportuj stronę Confluence do Obsidian", "zapisz stronę jako notatkę .md", "ściągnij stronę Confluence do vaultu".'
 ---
 
 # confluence-export

@@ -1,6 +1,6 @@
 ---
 name: confluence-read
-description: Use when reading or searching Confluence Cloud content — fetching a page by ID or title (storage body), listing spaces, running a CQL search, or reading a page's comments. Triggers: "pokaż stronę Confluence", "znajdź stronę", "szukaj w Confluence (CQL)", "lista przestrzeni", "komentarze do strony".
+description: 'Use when reading or searching Confluence Cloud content — fetching a page by ID or title (storage body), listing spaces, running a CQL search, or reading a page's comments. Triggers: "pokaż stronę Confluence", "znajdź stronę", "szukaj w Confluence (CQL)", "lista przestrzeni", "komentarze do strony".'
 ---
 
 # confluence-read
