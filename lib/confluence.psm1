@@ -208,3 +208,32 @@ function Add-ConfluenceComment {
     }
     return Invoke-ConfluenceApi -Method POST -Path 'content' -Body $body -Config $Config
 }
+
+function Send-ConfluenceAttachment {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][string]$PageId,
+        [Parameter(Mandatory)][string]$Path,
+        [string]$Comment,
+        $Config
+    )
+    return Invoke-ConfluenceApi -Method POST -Path "content/$PageId/child/attachment" `
+        -FilePath $Path -AttachmentComment $Comment -NoCheck -Config $Config
+}
+
+function Get-ConfluenceAttachment {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][string]$PageId,
+        [Parameter(Mandatory)][string]$Filename,
+        [Parameter(Mandatory)][string]$OutFile,
+        $Config
+    )
+    if (-not $Config) { $Config = Get-ConfluenceConfig }
+    $list = Invoke-ConfluenceApi -Method GET -Path "content/$PageId/child/attachment" -Query @{ filename = $Filename } -Config $Config
+    $att = $list.results | Where-Object { $_.title -eq $Filename } | Select-Object -First 1
+    if (-not $att) { throw "Nie znaleziono zalacznika '$Filename' na stronie $PageId." }
+    $downloadUrl = ([string]$Config.baseUrl).TrimEnd('/') + [string]$att._links.download
+    $null = Invoke-ConfluenceCurl -Method GET -Url $downloadUrl -Email $Config.email -ApiToken $Config.apiToken -OutFile $OutFile
+    return $OutFile
+}

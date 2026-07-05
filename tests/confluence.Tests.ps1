@@ -182,3 +182,38 @@ Describe 'Funkcje zapisu' {
         Should -Invoke -ModuleName confluence Invoke-ConfluenceApi -Times 1
     }
 }
+
+Describe 'Zalaczniki' {
+    BeforeAll {
+        $script:cfg = [pscustomobject]@{ baseUrl='https://x.atlassian.net/wiki'; email='a@b.c'; apiToken='S' }
+    }
+
+    It 'Send-ConfluenceAttachment uzywa FilePath i -NoCheck (naglowek nocheck)' {
+        Mock -ModuleName confluence Invoke-ConfluenceApi { '{"results":[{"id":"att1"}]}' } -ParameterFilter {
+            $Method -eq 'POST' -and $Path -eq 'content/123/child/attachment' -and
+            $FilePath -eq 'C:\dane\plik.txt' -and $NoCheck -eq $true
+        }
+        Send-ConfluenceAttachment -PageId '123' -Path 'C:\dane\plik.txt' -Config $script:cfg | Out-Null
+        Should -Invoke -ModuleName confluence Invoke-ConfluenceApi -Times 1
+    }
+
+    It 'Get-ConfluenceAttachment sciaga po nazwie do OutFile' {
+        Mock -ModuleName confluence Invoke-ConfluenceApi {
+            [pscustomobject]@{ results = @(
+                [pscustomobject]@{ title='plik.txt'; _links = [pscustomobject]@{ download = '/download/attachments/123/plik.txt?version=1' } }
+            ) }
+        } -ParameterFilter { $Method -eq 'GET' -and $Path -eq 'content/123/child/attachment' }
+        Mock -ModuleName confluence Invoke-ConfluenceCurl { '' } -ParameterFilter {
+            $OutFile -eq 'C:\out\plik.txt' -and $Url -like '*download/attachments/123/plik.txt*'
+        }
+        $r = Get-ConfluenceAttachment -PageId '123' -Filename 'plik.txt' -OutFile 'C:\out\plik.txt' -Config $script:cfg
+        $r | Should -Be 'C:\out\plik.txt'
+        Should -Invoke -ModuleName confluence Invoke-ConfluenceCurl -Times 1
+    }
+
+    It 'Get-ConfluenceAttachment rzuca gdy brak zalacznika o nazwie' {
+        Mock -ModuleName confluence Invoke-ConfluenceApi { [pscustomobject]@{ results = @() } }
+        { Get-ConfluenceAttachment -PageId '123' -Filename 'brak.txt' -OutFile 'C:\out\brak.txt' -Config $script:cfg } |
+            Should -Throw -ExpectedMessage '*brak.txt*'
+    }
+}
