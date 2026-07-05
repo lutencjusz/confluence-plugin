@@ -1,6 +1,6 @@
 ---
 name: confluence-write
-description: 'Use when creating or editing Confluence Cloud pages (storage format) or adding a comment — new page in a space, updating an existing page's body, or posting a comment. Triggers: "utwórz stronę Confluence", "zaktualizuj stronę", "edytuj stronę Confluence", "dodaj komentarz do strony".'
+description: 'Use when creating or editing Confluence Cloud pages (storage format) or adding a comment — new page in a space, updating an existing page''s body, or posting a comment. Triggers: "utwórz stronę Confluence", "zaktualizuj stronę", "edytuj stronę Confluence", "dodaj komentarz do strony".'
 ---
 
 # confluence-write
