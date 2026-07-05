@@ -152,3 +152,59 @@ function Get-ConfluenceComments {
     param([Parameter(Mandatory)][string]$PageId, $Config)
     return Invoke-ConfluenceApi -Method GET -Path "content/$PageId/child/comment" -Query @{ expand = 'body.storage,version' } -Config $Config
 }
+
+function New-ConfluencePage {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][string]$SpaceKey,
+        [Parameter(Mandatory)][string]$Title,
+        [Parameter(Mandatory)][string]$Storage,
+        [string]$ParentId,
+        $Config
+    )
+    $body = @{
+        type  = 'page'
+        title = $Title
+        space = @{ key = $SpaceKey }
+        body  = @{ storage = @{ value = $Storage; representation = 'storage' } }
+    }
+    if ($ParentId) { $body.ancestors = @(@{ id = $ParentId }) }
+    return Invoke-ConfluenceApi -Method POST -Path 'content' -Body $body -Config $Config
+}
+
+function Update-ConfluencePage {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][string]$Id,
+        [Parameter(Mandatory)][string]$Storage,
+        [string]$Title,
+        $Config
+    )
+    if (-not $Config) { $Config = Get-ConfluenceConfig }
+    $current = Get-ConfluencePage -Id $Id -Config $Config
+    $nextVersion = [int]$current.version.number + 1
+    $newTitle = if ($Title) { $Title } else { $current.title }
+    $body = @{
+        id      = $Id
+        type    = 'page'
+        title   = $newTitle
+        body    = @{ storage = @{ value = $Storage; representation = 'storage' } }
+        version = @{ number = $nextVersion }
+    }
+    return Invoke-ConfluenceApi -Method PUT -Path "content/$Id" -Body $body -Config $Config
+}
+
+function Add-ConfluenceComment {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][string]$PageId,
+        [Parameter(Mandatory)][string]$Storage,
+        $Config
+    )
+    $body = @{
+        type      = 'comment'
+        container = @{ id = $PageId; type = 'page' }
+        body      = @{ storage = @{ value = $Storage; representation = 'storage' } }
+    }
+    return Invoke-ConfluenceApi -Method POST -Path 'content' -Body $body -Config $Config
+}

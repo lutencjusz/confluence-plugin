@@ -121,3 +121,64 @@ Describe 'Funkcje odczytu' {
         Should -Invoke -ModuleName confluence Invoke-ConfluenceApi -Times 1
     }
 }
+
+Describe 'Funkcje zapisu' {
+    BeforeAll {
+        $script:cfg = [pscustomobject]@{ baseUrl='https://x.atlassian.net/wiki'; email='a@b.c'; apiToken='S' }
+    }
+
+    It 'New-ConfluencePage buduje body z type=page i storage' {
+        Mock -ModuleName confluence Invoke-ConfluenceApi { '{"id":"1"}' } -ParameterFilter {
+            $Method -eq 'POST' -and $Path -eq 'content' -and
+            $Body.type -eq 'page' -and $Body.space.key -eq 'DS' -and
+            $Body.body.storage.representation -eq 'storage' -and
+            $Body.body.storage.value -eq '<p>hi</p>'
+        }
+        New-ConfluencePage -SpaceKey 'DS' -Title 'T' -Storage '<p>hi</p>' -Config $script:cfg | Out-Null
+        Should -Invoke -ModuleName confluence Invoke-ConfluenceApi -Times 1
+    }
+
+    It 'New-ConfluencePage dodaje ancestors gdy ParentId' {
+        Mock -ModuleName confluence Invoke-ConfluenceApi { '{"id":"1"}' } -ParameterFilter {
+            $Body.ancestors[0].id -eq '999'
+        }
+        New-ConfluencePage -SpaceKey 'DS' -Title 'T' -Storage '<p>x</p>' -ParentId '999' -Config $script:cfg | Out-Null
+        Should -Invoke -ModuleName confluence Invoke-ConfluenceApi -Times 1
+    }
+
+    It 'Update-ConfluencePage inkrementuje version.number (N -> N+1)' {
+        # GET (obecna wersja) i PUT ida przez Invoke-ConfluenceApi — rozroznij po Method.
+        Mock -ModuleName confluence Invoke-ConfluenceApi {
+            if ($Method -eq 'GET') {
+                return ([pscustomobject]@{ id='123'; title='Stary'; version=[pscustomobject]@{ number=5 } })
+            }
+            return ([pscustomobject]@{ id='123' })
+        }
+        Update-ConfluencePage -Id '123' -Storage '<p>new</p>' -Config $script:cfg | Out-Null
+        Should -Invoke -ModuleName confluence Invoke-ConfluenceApi -Times 1 -ParameterFilter {
+            $Method -eq 'PUT' -and $Path -eq 'content/123' -and $Body.version.number -eq 6
+        }
+    }
+
+    It 'Update-ConfluencePage zachowuje stary tytul gdy -Title nie podany' {
+        Mock -ModuleName confluence Invoke-ConfluenceApi {
+            if ($Method -eq 'GET') {
+                return ([pscustomobject]@{ id='123'; title='Stary'; version=[pscustomobject]@{ number=1 } })
+            }
+            return ([pscustomobject]@{ id='123' })
+        }
+        Update-ConfluencePage -Id '123' -Storage '<p>x</p>' -Config $script:cfg | Out-Null
+        Should -Invoke -ModuleName confluence Invoke-ConfluenceApi -Times 1 -ParameterFilter {
+            $Method -eq 'PUT' -and $Body.title -eq 'Stary'
+        }
+    }
+
+    It 'Add-ConfluenceComment buduje type=comment z container=strona' {
+        Mock -ModuleName confluence Invoke-ConfluenceApi { '{"id":"c1"}' } -ParameterFilter {
+            $Method -eq 'POST' -and $Path -eq 'content' -and
+            $Body.type -eq 'comment' -and $Body.container.id -eq '123' -and $Body.container.type -eq 'page'
+        }
+        Add-ConfluenceComment -PageId '123' -Storage '<p>komentarz</p>' -Config $script:cfg | Out-Null
+        Should -Invoke -ModuleName confluence Invoke-ConfluenceApi -Times 1
+    }
+}
